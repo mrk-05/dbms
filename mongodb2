@@ -1,0 +1,80 @@
+# MongoDB - 2
+
+MongoDB - Aggregation and Indexing: Design and Develop MongoDB Queries using aggregation and indexing with suitable example using MongoDB
+use LibraryDB
+db.Library.insertMany([
+  { Book_ID: 1, Book_Name: "C Programming", Author: "Pratik", Copies: 5, Year: 1978 },
+  { Book_ID: 2, Book_Name: "MongoDB Basics", Author: "Rhutik", Copies: 3, Year: 2020 },
+  { Book_ID: 3, Book_Name: "Node.js Guide", Author: "Om", Copies: 4, Year: 2021 },
+  { Book_ID: 4, Book_Name: "Advanced C", Author: "Ganesh", Copies: 2, Year: 1985 },
+  { Book_ID: 5, Book_Name: "MongoDB Advanced", Author: "Pratik", Copies: 6, Year: 2021 }
+]);
+db.Library.createIndex({ Author: 1 });
+db.Library.createIndex({ Author: 1, Year: -1 });
+db.Library.getIndexes();
+db.Library.aggregate([
+  {
+    $group: {
+      _id: "$Author",
+      totalBooks: { $sum: 1 },
+      totalCopies: { $sum: "$Copies" }
+    }
+  }
+]);
+db.Library.aggregate([
+  { $match: { Year: { $gte: 2000 } } },
+  {
+    $group: {
+      _id: "$Author",
+      totalBooks: { $sum: 1 },
+      totalCopies: { $sum: "$Copies" }
+    }
+  }
+]);
+db.Library.aggregate([
+  { $match: { Copies: { $gte: 4 } } },
+  { $sort: { Copies: -1 } },
+  { $project: { Book_Name: 1, Author: 1, Copies: 1, _id: 0 } }
+]);
+db.Sales.insertMany([
+  { Book_ID: 1, Sold: 50 },
+  { Book_ID: 2, Sold: 30 },
+  { Book_ID: 3, Sold: 40 },
+  { Book_ID: 5, Sold: 25 }
+]);
+
+db.Library.aggregate([
+  {
+    $lookup: {
+      from: "Sales",
+      localField: "Book_ID",
+      foreignField: "Book_ID",
+      as: "sales_info"
+    }
+  },
+  { $project: { Book_Name: 1, Author: 1, Copies: 1, sales_info: 1, _id: 0 } }
+]);
+db.Library.aggregate([
+  {
+    $lookup: {
+      from: "Sales",
+      localField: "Book_ID",
+      foreignField: "Book_ID",
+      as: "sales_info"
+    }
+  },
+  { $unwind: "$sales_info" },
+  {
+    $group: {
+      _id: "$Author",
+      totalCopies: { $sum: "$Copies" },
+      totalSold: { $sum: "$sales_info.Sold" }
+    }
+  }
+]);
+# Use single-field index
+db.Library.find({ Author: "Pratik" });
+
+# Use compound index
+db.Library.find({ Author: "Pratik", Year: { $gte: 2020 } });
+
