@@ -1,0 +1,43 @@
+Design and Develop SQL DDL statements which demonstrate the use of SQL such as Table, View, Index, Sequence, Synonym
+CREATE DATABASE demo_db;
+​
+USE demo_db;
+​
+CREATE TABLE employees (
+emp_id INT AUTO_INCREMENT PRIMARY KEY,
+emp_name VARCHAR(50),
+salary DECIMAL(10,2)
+);
+​
+CREATE INDEX idx_empname
+ON employees(emp_name);
+​
+CREATE VIEW high_salary_emp AS
+SELECT emp_id, emp_name, salary
+FROM employees
+WHERE salary > 50000;
+- Insert some sample data
+
+```sql
+
+INSERT INTO employees (emp_name, salary) VALUES ('pratik', 600000);
+INSERT INTO employees (emp_name, salary) VALUES ('om', 450000);
+INSERT INTO employees (emp_name, salary) VALUES ('rhutik', 750000);
+```
+
+- - Test queries
+
+```sql
+
+SELECT * FROM employees;
+SELECT * FROM high_salary_emp;
+```
+
+- - MySQL has no SYNONYM, but you can simulate it with another VIEW
+
+```sql
+CREATE VIEW emp_syn AS SELECT * FROM employees;
+```
+
+```sql
+SELECT * FROM emp_syn;
