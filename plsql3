@@ -1,0 +1,60 @@
+# PL/SQL - 3
+
+Write a PL/SQL block of code using parameterized Cursor that will merge the
+data availablein the newly
+created table N_RollCall with the data available in the table
+O_RollCall. If thedatain thefirst tablealreadyexist in thesecondtablethen that datashouldbeskipped.
+SET SERVEROUTPUT ON;
+CREATE TABLE N_RollCall (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(50),
+    Total_Marks NUMBER
+);
+
+CREATE TABLE O_RollCall (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(50),
+    Total_Marks NUMBER
+);
+INSERT INTO N_RollCall (Roll, Name, Total_Marks) VALUES (1, 'Pratik', 1200);
+INSERT INTO N_RollCall (Roll, Name, Total_Marks) VALUES (2, 'Om', 950);
+INSERT INTO N_RollCall (Roll, Name, Total_Marks) VALUES (3, 'Rhutik', 880);
+INSERT INTO N_RollCall (Roll, Name, Total_Marks) VALUES (4, 'Amit', 830);
+INSERT INTO N_RollCall (Roll, Name, Total_Marks) VALUES (5, 'Kunal', 700);
+
+COMMIT;
+DECLARE
+    CURSOR c_new(p_roll NUMBER) IS
+        SELECT Roll, Name, Total_Marks
+        FROM N_RollCall
+        WHERE Roll = p_roll;
+
+    v_roll N_RollCall.Roll%TYPE;
+    v_name N_RollCall.Name%TYPE;
+    v_marks N_RollCall.Total_Marks%TYPE;
+
+    v_count NUMBER;
+BEGIN
+    FOR rec IN (SELECT Roll FROM N_RollCall) LOOP
+        OPEN c_new(rec.Roll);
+        FETCH c_new INTO v_roll, v_name, v_marks;
+        CLOSE c_new;
+
+        SELECT COUNT(*) INTO v_count
+        FROM O_RollCall
+        WHERE Roll = v_roll;
+
+        IF v_count = 0 THEN
+            INSERT INTO O_RollCall (Roll, Name, Total_Marks)
+            VALUES (v_roll, v_name, v_marks);
+            DBMS_OUTPUT.PUT_LINE('Inserted: ' || v_roll || ' - ' || v_name);
+        ELSE
+            DBMS_OUTPUT.PUT_LINE('Skipped: ' || v_roll || ' - ' || v_name);
+        END IF;
+    END LOOP;
+
+    COMMIT;
+END;
+/
+SELECT * FROM N_RollCall;
+SELECT * FROM O_RollCall;
