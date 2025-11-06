@@ -1,0 +1,22 @@
+# MongoDB - 1
+
+MongoDB Queries: Design and Develop MongoDB Queries using CRUD operations. (Use CRUD operations, SAVE method, logical operators etc)
+use LibraryDB
+db.Library.insertMany([
+  { Book_ID: 1, Book_Name: "C Programming", Author: "Pratik", Copies: 5 },
+  { Book_ID: 2, Book_Name: "MongoDB Basics", Author: "Rhutik", Copies: 3 },
+  { Book_ID: 3, Book_Name: "Node.js Guide", Author: "Om", Copies: 4 },
+  { Book_ID: 4, Book_Name: "Advanced C", Author: "Ganesh", Copies: 2 },
+  { Book_ID: 5, Book_Name: "MongoDB Advanced", Author: "Pratik", Copies: 6 }
+]);
+db.Library.find();
+db.Library.find({ Copies: { $gte: 4 } });
+db.Library.find({ $or: [ { Author: "Pratik" }, { Copies: { $gte: 5 } } ] });
+db.Library.updateOne(
+    { Book_ID: 2 },
+    { $set: { Copies: 10 } }
+);
+db.Library.save({ Book_ID: 6, Book_Name: "Java Basics", Author: "Om", Copies: 7 });
+db.Library.save({ Book_ID: 2, Book_Name: "MongoDB Basics", Author: "Rhutik", Copies: 15 });
+db.Library.deleteOne({ Book_ID: 4 });
+db.Library.deleteMany({ Copies: { $lt: 5 } });
