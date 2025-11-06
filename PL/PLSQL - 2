@@ -1,0 +1,67 @@
+# PL/SQL - 2
+
+Write a Stored Procedure namely proc_Grade for the categorization of student. If marks scored by students in examination is <=1500 and marks>=990 then student will be placed in distinction category if marks 
+scored are between 989 and 900 category is first class, if marks 899 and 825 category is Higher Second Class.
+Write a PL/SQL block to use procedure created  with above requirement. Stud_Marks(name, total_marks) . Result(Roll, Name, Class)
+CREATE TABLE Stud_Marks (
+    Roll NUMBER PRIMARY KEY,
+    Name VARCHAR2(50),
+    Total_Marks NUMBER
+);
+
+CREATE TABLE Result (
+    Roll NUMBER,
+    Name VARCHAR2(50),
+    Class VARCHAR2(30)
+);
+
+CREATE SEQUENCE stud_marks_seq START WITH 1 INCREMENT BY 1;
+INSERT INTO Stud_Marks (Roll, Name, Total_Marks)
+VALUES (stud_marks_seq.NEXTVAL, 'Pratik', 1200);
+
+INSERT INTO Stud_Marks (Roll, Name, Total_Marks)
+VALUES (stud_marks_seq.NEXTVAL, 'Om', 950);
+
+INSERT INTO Stud_Marks (Roll, Name, Total_Marks)
+VALUES (stud_marks_seq.NEXTVAL, 'Rhutik', 880);
+
+INSERT INTO Stud_Marks (Roll, Name, Total_Marks)
+VALUES (stud_marks_seq.NEXTVAL, 'Amit', 830);
+
+INSERT INTO Stud_Marks (Roll, Name, Total_Marks)
+VALUES (stud_marks_seq.NEXTVAL, 'Kunal', 700);
+
+COMMIT;
+CREATE OR REPLACE PROCEDURE proc_Grade IS
+    CURSOR cur IS
+        SELECT Roll, Name, Total_Marks FROM Stud_Marks;
+
+    v_roll Stud_Marks.Roll%TYPE;
+    v_name Stud_Marks.Name%TYPE;
+    v_marks Stud_Marks.Total_Marks%TYPE;
+    v_class VARCHAR2(30);
+BEGIN
+    FOR rec IN cur LOOP
+        IF rec.Total_Marks BETWEEN 990 AND 1500 THEN
+            v_class := 'Distinction';
+        ELSIF rec.Total_Marks BETWEEN 900 AND 989 THEN
+            v_class := 'First Class';
+        ELSIF rec.Total_Marks BETWEEN 825 AND 899 THEN
+            v_class := 'Higher Second Class';
+        ELSE
+            v_class := 'Not Classified';
+        END IF;
+
+        INSERT INTO Result (Roll, Name, Class)
+        VALUES (rec.Roll, rec.Name, v_class);
+    END LOOP;
+
+    COMMIT;
+END;
+/
+BEGIN
+    proc_Grade;
+END;
+/
+SELECT * FROM Stud_Marks;
+SELECT * FROM Result;
