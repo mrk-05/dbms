@@ -1,0 +1,94 @@
+# PL/SQL - 4
+
+Write a database trigger on Library table. The System should keep track of the records that are being updated or deleted. The old value of updated or deleted records should be added in Library Audit table.
+
+**Not sure why this code gives error You can solve** 
+
+**Code with the errors**
+SET SERVEROUTPUT ON;
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE Library';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE Library_Audit';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+    EXECUTE IMMEDIATE 'DROP SEQUENCE library_audit_seq';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+CREATE TABLE Library (
+    Book_ID NUMBER PRIMARY KEY,
+    Book_Name VARCHAR2(100),
+    Author VARCHAR2(50),
+    Copies NUMBER
+);
+
+CREATE TABLE Library_Audit (
+    Audit_ID NUMBER PRIMARY KEY,
+    Book_ID NUMBER,
+    Book_Name VARCHAR2(100),
+    Copies NUMBER,
+    Action_Type VARCHAR2(10),
+    Action_Date DATE
+);
+
+CREATE SEQUENCE library_audit_seq START WITH 1 INCREMENT BY 1;
+INSERT INTO Library (Book_ID, Book_Name, Author, Copies) VALUES (1, 'C Programming', 'K&R', 5);
+INSERT INTO Library (Book_ID, Book_Name, Author, Copies) VALUES (2, 'Oracle PL/SQL', 'Steven Feuerstein', 3);
+
+COMMIT;
+CREATE OR REPLACE PROCEDURE UpdateBookCopies(p_BookID NUMBER, p_NewCopies NUMBER) IS
+    v_BookName Library.Book_Name%TYPE;
+BEGIN
+    SELECT Book_Name INTO v_BookName FROM Library WHERE Book_ID = p_BookID;
+
+    UPDATE Library
+    SET Copies = p_NewCopies
+    WHERE Book_ID = p_BookID;
+
+    INSERT INTO Library_Audit (
+        Audit_ID, Book_ID, Book_Name, Copies, Action_Type, Action_Date
+    ) VALUES (
+        library_audit_seq.NEXTVAL, p_BookID, v_BookName, p_NewCopies, 'UPDATE', SYSDATE
+    );
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Updated Book ID: ' || p_BookID || ' (' || v_BookName || ')');
+END;
+/
+CREATE OR REPLACE PROCEDURE DeleteBook(p_BookID NUMBER) IS
+    v_BookName Library.Book_Name%TYPE;
+    v_Copies Library.Copies%TYPE;
+BEGIN
+    SELECT Book_Name, Copies INTO v_BookName, v_Copies FROM Library WHERE Book_ID = p_BookID;
+
+    DELETE FROM Library
+    WHERE Book_ID = p_BookID;
+
+    INSERT INTO Library_Audit (
+        Audit_ID, Book_ID, Book_Name, Copies, Action_Type, Action_Date
+    ) VALUES (
+        library_audit_seq.NEXTVAL, p_BookID, v_BookName, v_Copies, 'DELETE', SYSDATE
+    );
+
+    COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Deleted Book ID: ' || p_BookID || ' (' || v_BookName || ')');
+END;
+/
+BEGIN
+    UpdateBookCopies(1, 10);  -- Update Book ID 1
+    DeleteBook(2);             -- Delete Book ID 2
+END;
+/
+SELECT * FROM Library;
+
+SELECT * FROM Library_Audit;
