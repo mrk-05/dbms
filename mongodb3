@@ -1,0 +1,59 @@
+# MongoDB - 3
+
+MongoDB - Map reduces operations: Implement Map reduces operation with suitable example using MongoDB.
+use LibraryDB
+db.Library.insertMany([
+  { Book_ID: 1, Book_Name: "C Programming", Author: "Pratik", Copies: 5 },
+  { Book_ID: 2, Book_Name: "MongoDB Basics", Author: "Rhutik", Copies: 3 },
+  { Book_ID: 3, Book_Name: "Node.js Guide", Author: "Om", Copies: 4 },
+  { Book_ID: 4, Book_Name: "Advanced C", Author: "Ganesh", Copies: 2 },
+  { Book_ID: 5, Book_Name: "MongoDB Advanced", Author: "Pratik", Copies: 6 }
+]);
+var mapFunction = function() {
+    emit(this.Author, this.Copies);
+};
+var reduceFunction = function(key, values) {
+    return Array.sum(values);
+};
+db.Library.mapReduce(
+    mapFunction,
+    reduceFunction,
+    { out: "total_copies_by_author" }
+);
+db.total_copies_by_author.find();
+
+
+Expected Output:
+{ "_id" : "Pratik", "value" : 11 }
+{ "_id" : "Rhutik", "value" : 3 }
+{ "_id" : "Om", "value" : 4 }
+{ "_id" : "Ganesh", "value" : 2 }
+
+
+4️⃣ Optional: Inline Output (without creating collection)
+db.Library.mapReduce(
+    mapFunction,
+    reduceFunction,
+    { out: { inline: 1 } }
+);
+5️⃣ Another Example: Count books per author
+Map
+var mapCount = function() {
+    emit(this.Author, 1);
+};
+
+​
+Reduce
+var reduceCount = function(key, values) {
+    return Array.sum(values);
+};
+
+​
+Run Map-Reduce
+db.Library.mapReduce(mapCount, reduceCount, { out: "books_count_by_author" });
+db.books_count_by_author.find();
+Expected Output:
+{ "_id" : "Pratik", "value" : 2 }
+{ "_id" : "Rhutik", "value" : 1 }
+{ "_id" : "Om", "value" : 1 }
+{ "_id" : "Ganesh", "value" : 1 }
